@@ -1,4 +1,4 @@
-﻿import { Container, Application, Graphics, Matrix } from 'pixi.js'
+﻿import { Container, Application, Graphics } from 'pixi.js'
 
 /**
  * Drager 拖拽交互管理器
@@ -57,7 +57,7 @@ export class Drager {
       this.DragerContainer.removeChild(target) // 从容器中移除
       target.destroy({ children: true }) // 彻底销毁
     } else {
-      console.warn(对于删除+obj+对应的元素的操作，, '未找到对应的拖拽对象')
+      console.warn(`对于删除${obj}对应的元素的操作，`, '未找到对应的拖拽对象')
     }
   }
   // 交互方法
@@ -212,7 +212,7 @@ export class Drager {
   LookDragerContainer() {
     console.log('DragerContainer中的对象:')
     this.DragerContainer.children.forEach((child, index) => {
-      console.log(+index+: +child.label, child)
+      console.log(`${index}: ${child.label}`, child)
     })
   }
   // 更新方法
