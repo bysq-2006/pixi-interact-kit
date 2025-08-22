@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "pixi-interact-kit",
   "version": "1.0.0",
   "description": "PixiJS拖拽交互管理器 - 用于管理PixiJS场景中的拖拽、缩放、旋转操作",
@@ -30,7 +30,7 @@
     "url": "https://github.com/bysq-2006/pixi-interact-kit/issues"
   },
   "peerDependencies": {
-    "pixi.js": "^8.0.0"
+    "pixi.js": "^8.12.0"
   },
   "engines": {
     "node": ">=14.0.0"
