@@ -1,31 +1,27 @@
 ﻿# pixi-interact-kit
 
 PixiJS 拖拽交互管理器 - 用于管理 PixiJS 场景中的拖拽、缩放、旋转操作
-
-## 特性
-
--  **拖拽控制** - 直观的拖拽交互
--  **旋转操作** - 支持对象旋转
--  **缩放控制** - 支持双向和单向缩放
--  **精确控制** - 提供8个控制点和1个旋转控制点
--  **父子关系支持** - 正确处理复杂的对象层级关系
+在原本的基础之上又封装了一层图形编辑器的功能
 
 ## 安装
 
-`ash
+`bash
 npm install pixi-interact-kit
 `
 
 ## 使用方法
 
 `javascript
-import { Application, Sprite, Texture } from 'pixi.js'
 import { Drager } from 'pixi-interact-kit'
+// 依赖pixi.js
 
 // 创建 PixiJS 应用
-const app = new Application({
+const app = new Application()
+
+await app.init({
   width: 800,
-  height: 600
+  height: 600,
+  backgroundColor: 0x1099bb,
 })
 
 // 创建拖拽管理器
@@ -40,6 +36,7 @@ sprite.anchor.set(0.5) // 设置锚点为中心，便于旋转
 
 // 添加到场景和拖拽管理器
 app.stage.addChild(sprite)
+
 drager.add(sprite)
 `
 
@@ -47,31 +44,27 @@ drager.add(sprite)
 
 ### Drager 类
 
-#### 构造函数
+#### 必须传递你的APP实例
 `javascript
 new Drager(app)
 `
-- pp - PixiJS Application 实例
 
 #### 方法
 
 **add(obj)**
-- 添加对象到拖拽管理器
+- 让你的图形拥有控制框
 - obj - 要添加的 PixiJS 对象（Sprite、Graphics 等）
 
 **remove(obj)**
-- 从拖拽管理器中移除对象
-- obj - 要移除的对象
+- 取消图形的控制框
 
-**LookDragerContainer()**
-- 打印当前管理器中的所有对象（调试用）
+**toggle(obj)**
+- 开关，如果有控制框则取消控制框，如果没有控制框则增加
 
-#### 控制点说明
+**removeAll**
+- 移除所有拖拽对象
 
-- **UpperLeft, UpperRight, LowerLeft, LowerRight** - 角点，用于等比缩放
-- **Upper, Lower** - 上下边中点，用于垂直缩放
-- **Left, Right** - 左右边中点，用于水平缩放
-- **Rotate** - 旋转控制点
+
 
 ## 注意事项
 
@@ -82,7 +75,7 @@ new Drager(app)
 
 2. **父子关系**：支持复杂的父子对象关系，控制框会正确跟随对象的世界变换
 
-3. **性能**：管理器会在每帧更新控制框位置，适合中等数量的交互对象
+3. **性能**：可以设置帧数，优化的话我个人觉得还行
 
 ## 许可证
 

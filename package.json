@@ -1,6 +1,6 @@
 {
   "name": "pixi-interact-kit",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "PixiJS拖拽交互管理器 - 用于管理PixiJS场景中的拖拽、缩放、旋转操作",
   "main": "src/index.js",
   "type": "module",

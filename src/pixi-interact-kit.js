@@ -1,4 +1,4 @@
-﻿import { Container, Application, Graphics } from 'pixi.js'
+﻿import { Container, Graphics } from 'pixi.js'
 
 /**
  * Drager 拖拽交互管理器
@@ -6,24 +6,29 @@
  * @example
  * const drager = new Drager(app) //传入你的application实例
  */
-export class Drager {
+export class Dragger {
   constructor(app) {
     this.targetMap = new Map() // 用于存储目标对象与拖动框的映射,双向关联的
     this.app = app // 引用
-    this.DragerContainer = null // 用来快速定位,存放拖拽对象的容器
+    this.draggerContainer = null // 用来快速定位,存放拖拽对象的容器
     this.handleSize = 10 // 控制框的尺寸
+    this.lastMoveTime = 0; // 记录上次执行move的时间
+    this.moveInterval = 1000 / 60; // 限制为30FPS（毫秒）
     this.init()
   }
+
   // 初始化方法
   init() {
-    this.DragerContainer = new Container()
-    this.DragerContainer.label = 'DragerContainer'
-    this.app.stage.addChild(this.DragerContainer)
+    this.draggerContainer = new Container()
+    this.draggerContainer.label = 'draggerContainer '
+    this.draggerContainer.zIndex = 9999 // 确保在最上层
+    this.app.stage.addChild(this.draggerContainer)
     this.app.ticker.add(this.update, this) // 传递方法引用和上下文
     this.app.renderer.events.domElement.addEventListener('pointerup', this.interaction.loosen) // 监听全局的松开事件
   }
+
   /**
-   * 添加拖拽对象到DragerContainer
+   * 添加拖拽对象到draggerContainer 
    * add(对象)，最好是添加精灵或者图形
    * @param {Object} obj - 要添加的对象
    * @examplef
@@ -35,15 +40,16 @@ export class Drager {
   add(obj) {
     const newContainer = new Container()
     newContainer.label = obj.label
-    this.DragerContainer.addChild(newContainer)
+    this.draggerContainer.addChild(newContainer)
     this.targetMap.set(obj, newContainer)
     this.targetMap.set(newContainer, obj) // 双向关联
     this.ControlBoxGraphics(obj) // 添加控制框图形
-    newContainer.interactive = true // 使容器可交互
-    newContainer.on('pointerdown', this.interaction.click) // 绑定交互事件
+    newContainer.interactive = true
+    newContainer.on('pointerdown', this.interaction.click)
   }
+
   /**
-   * 移除拖拽对象，在DragerContainer里面
+   * 移除拖拽对象，在draggerContainer 里面
    * @param {Object|string} obj - 要移除的对象
    * @example
    * // 传入对象本身
@@ -52,14 +58,63 @@ export class Drager {
   remove(obj) {
     const target = this.targetMap.get(obj)
     if (target) {
+      target.removeAllListeners(); // 移除所有事件监听器
       this.targetMap.delete(obj)
       this.targetMap.delete(target) // 删除双向关联
-      this.DragerContainer.removeChild(target) // 从容器中移除
+      this.draggerContainer.removeChild(target) // 从容器中移除
       target.destroy({ children: true }) // 彻底销毁
     } else {
       console.warn(`对于删除${obj}对应的元素的操作，`, '未找到对应的拖拽对象')
     }
   }
+
+  /**
+   * 移除所有拖拽对象
+   */
+  removeAll() {
+    this.draggerContainer.children.forEach(child => {
+      child.removeAllListeners(); // 移除所有事件监听器
+      this.targetMap.delete(this.targetMap.get(child));
+      this.targetMap.delete(child); // 删除双向关联
+      child.destroy({ children: true }); // 彻底销毁
+    });
+    this.draggerContainer.removeChildren(); // 清空容器
+  }
+
+  /**
+   * 开关方法
+   * @param {Object|string} obj - 要切换的对象
+   * @example
+   * // 传入对象本身
+   * drager.toggle(sprite)
+  */
+  toggle(obj) {
+    const target = this.targetMap.get(obj)
+    if (target) {
+      this.remove(obj)
+    } else {
+      this.add(obj)
+    }
+  }
+
+  Math = {
+    pointToPerpendicularLineDistance(center, ref, target) {
+      // 计算从点 target 到(经过center,并且和center和ref垂直的线)线的距离
+      const dirX = ref.x - center.x;
+      const dirY = ref.y - center.y;
+      const dirLength = Math.sqrt(dirX * dirX + dirY * dirY);
+      if (dirLength === 0) {
+        return 0; // Handle zero vector case
+      }
+      const normDirX = dirX / dirLength;
+      const normDirY = dirY / dirLength;
+      const toTargetX = target.x - center.x;
+      const toTargetY = target.y - center.y;
+      const projection = toTargetX * normDirX + toTargetY * normDirY;
+      return Math.abs(projection);
+    }
+  }
+
   // 交互方法
   interaction = {
     status_: 'none', // 交互状态，none,scaleXY,scaleX,scaleY,rotate
@@ -114,21 +169,6 @@ export class Drager {
     // 使用全局坐标系
     move: () => {
       if (this.interaction.status_ === 'none') return // 如果没有交互状态则不处理
-      function pointToPerpendicularLineDistance(center, ref, target) {
-        // 计算从点 target 到(经过center,并且和center和ref垂直的线)线的距离
-        const dirX = ref.x - center.x;
-        const dirY = ref.y - center.y;
-        const dirLength = Math.sqrt(dirX * dirX + dirY * dirY);
-        if (dirLength === 0) {
-          return 0; // Handle zero vector case
-        }
-        const normDirX = dirX / dirLength;
-        const normDirY = dirY / dirLength;
-        const toTargetX = target.x - center.x;
-        const toTargetY = target.y - center.y;
-        const projection = toTargetX * normDirX + toTargetY * normDirY;
-        return Math.abs(projection);
-      }
 
       const rect = this.app.canvas.getBoundingClientRect();
       // 将PixiJS坐标转换为DOM坐标系
@@ -146,14 +186,14 @@ export class Drager {
           this.interaction.obj.scale.y = this.interaction.scaleStart.y * scaleRatio; // 逆向缩放
           break
         case 'scaleX': // 水平缩放
-          const startDistX = pointToPerpendicularLineDistance(globXY, start, start)
-          const currentDistX = pointToPerpendicularLineDistance(globXY, start, { x: mouseX, y: mouseY })
+          const startDistX = this.Math.pointToPerpendicularLineDistance(globXY, start, start)
+          const currentDistX = this.Math.pointToPerpendicularLineDistance(globXY, start, { x: mouseX, y: mouseY })
           const scaleRatioX = currentDistX / startDistX;
           this.interaction.obj.scale.x = this.interaction.scaleStart.x * scaleRatioX;
           break
         case 'scaleY': // 垂直缩放
-          const startDistY = pointToPerpendicularLineDistance(globXY, start, start)
-          const currentDistY = pointToPerpendicularLineDistance(globXY, start, { x: mouseX, y: mouseY })
+          const startDistY = this.Math.pointToPerpendicularLineDistance(globXY, start, start)
+          const currentDistY = this.Math.pointToPerpendicularLineDistance(globXY, start, { x: mouseX, y: mouseY })
           const scaleRatioY = currentDistY / startDistY;
           this.interaction.obj.scale.y = this.interaction.scaleStart.y * scaleRatioY;
           break
@@ -167,8 +207,9 @@ export class Drager {
       }
     },
   }
+
   /**
-   * 添加控制框图形到DragerContainer
+   * 添加控制框图形到draggerContainer 
    * @param {Object} obj - 要添加控制框的对象
   */
   ControlBoxGraphics(obj) {
@@ -209,33 +250,28 @@ export class Drager {
     this.targetMap.get(obj).addChild(UpperLeft, UpperRight, LowerLeft, LowerRight,
       Upper, Lower, Left, Right, Rotate)
   }
-  LookDragerContainer() {
-    console.log('DragerContainer中的对象:')
-    this.DragerContainer.children.forEach((child, index) => {
-      console.log(`${index}: ${child.label}`, child)
-    })
-  }
+  
   // 更新方法
   update() {
-    this.DragerContainer.children.forEach((child) => {
+    this.draggerContainer.children.forEach((child) => {
       const target = this.targetMap.get(child);
       const wt = target.worldTransform;
+      child.setFromMatrix(wt); // 同步变换矩阵
 
-      // 直接设置变换矩阵
-      child.setFromMatrix(wt);
-
-      // 让控制框里的小方块保持固定大小
-      child.children.forEach((handle) => {
-        // 直接根据父容器的缩放来设置逆缩放
+      child.children.forEach((handle) => { // 逆向缩放控制框
         const parentScaleX = child.scale.x;
         const parentScaleY = child.scale.y;
-
         if (parentScaleX !== 0 && parentScaleY !== 0) {
           handle.scale.set(1 / parentScaleX, 1 / parentScaleY);
         }
       });
 
-      this.interaction.move();
+      // 帧率限制：只有到达指定间隔才执行 move
+      const now = performance.now();
+      if (now - this.lastMoveTime > this.moveInterval) {
+        this.interaction.move();
+        this.lastMoveTime = now;
+      }
     });
   }
 }
