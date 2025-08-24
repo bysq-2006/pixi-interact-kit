@@ -5,15 +5,15 @@ PixiJS 拖拽交互管理器 - 用于管理 PixiJS 场景中的拖拽、缩放�
 
 ## 安装
 
-`bash
+```bash
 npm install pixi-interact-kit
-`
+```
 
 ## 使用方法
 
-`javascript
-import { Drager } from 'pixi-interact-kit'
-// 依赖pixi.js
+```javascript
+import { Container, Graphics } from 'pixi.js'
+import { Dragger } from 'pixi-interact-kit'
 
 // 创建 PixiJS 应用
 const app = new Application()
@@ -25,7 +25,7 @@ await app.init({
 })
 
 // 创建拖拽管理器
-const drager = new Drager(app)
+const dragger = new Dragger(app)
 
 // 创建一个精灵对象
 const sprite = new Sprite(Texture.WHITE)
@@ -37,18 +37,17 @@ sprite.anchor.set(0.5) // 设置锚点为中心，便于旋转
 // 添加到场景和拖拽管理器
 app.stage.addChild(sprite)
 
-drager.add(sprite)
-`
+dragger.add(sprite)
+```
 
 ## API 文档
 
-### Drager 类
+### Dragger 类
 
 #### 必须传递你的APP实例
-`javascript
-new Drager(app)
-`
-
+```javascript
+const dragger = new Dragger(app)
+```
 #### 方法
 
 **add(obj)**
@@ -64,11 +63,28 @@ new Drager(app)
 **removeAll**
 - 移除所有拖拽对象
 
+**setConfig**
+- 设置各种属性
+- handleSize - 控制框的尺寸，默认10
+- fps - 移动时的帧率，默认60
+
+**destroy**
+- 销毁这个类
+
+### GraphicCreator 类
+```javascript
+const graphicCreator = new GraphicCreator(app)
+// 实例化成为对象之后就自动在舞台上挂在了监听器
+```
+#### 方法
+
+**destroy**
+- 销毁这个类
 
 
 ## 注意事项
 
-1. **锚点设置**：为了获得最佳的旋转效果，建议在添加对象前设置锚点：
+1. **锚点设置**：对于Dragger为了获得最佳的旋转效果，建议在添加对象前设置锚点：
    `javascript
    sprite.anchor.set(0.5) // 中心锚点
    `
