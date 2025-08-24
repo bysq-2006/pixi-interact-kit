@@ -75,8 +75,20 @@ const dragger = new Dragger(app)
 ```javascript
 const graphicCreator = new GraphicCreator(app)
 // 实例化成为对象之后就自动在舞台上挂在了监听器
+// 作用是,点击拖拽可以创造一个新的图形
 ```
 #### 方法
+
+**setMode**
+/**
+  * 设置当前创建图形的模式
+  * @param {string} mode - 模式名称，目前支持:
+  * - 'none' - 无模式
+  * - 'rect' - 矩形
+  * - 'circle' - 圆形
+  * - 'line' - 直线
+  * - 'triangle' - 三角形
+  */
 
 **destroy**
 - 销毁这个类
@@ -85,9 +97,9 @@ const graphicCreator = new GraphicCreator(app)
 ## 注意事项
 
 1. **锚点设置**：对于Dragger为了获得最佳的旋转效果，建议在添加对象前设置锚点：
-   `javascript
+   ```javascript
    sprite.anchor.set(0.5) // 中心锚点
-   `
+   ```
 
 2. **父子关系**：支持复杂的父子对象关系，控制框会正确跟随对象的世界变换
 

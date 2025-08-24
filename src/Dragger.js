@@ -17,6 +17,18 @@ export class Dragger {
     this.init()
   }
 
+  /**
+   * 设置各种属性
+   * @param {number} handleSize - 控制框的尺寸，默认10
+   * @param {number} fps - 移动时的帧率，默认60
+   * @example
+   * drager.setConfig(20,30) // 设置控制框尺寸为20，移动时的帧率为30
+   */
+  setConfig(handleSize = 10, fps = 60) {
+    this.handleSize = handleSize // 控制框的尺寸
+    this.moveInterval = 1000 / fps; // fps
+  }
+
   // 初始化方法
   init() {
     this.draggerContainer = new Container()
@@ -25,6 +37,29 @@ export class Dragger {
     this.app.stage.addChild(this.draggerContainer)
     this.app.ticker.add(this.update, this) // 传递方法引用和上下文
     this.app.renderer.events.domElement.addEventListener('pointerup', this.interaction.loosen) // 监听全局的松开事件
+  }
+
+  /**
+   * 销毁方法
+   * 清理所有资源和事件监听器
+   * @example
+   * drager.destroy()
+   * drager = null // 之后将引用置空
+   */
+  destroy() {
+    // 移除全局 pointerup 监听器
+    this.app.renderer.events.domElement.removeEventListener('pointerup', this.interaction.loosen);
+    // 移除 ticker 的 update 方法
+    this.app.ticker.remove(this.update, this);
+    // 销毁所有拖拽对象和容器
+    this.removeAll();
+    if (this.draggerContainer) {
+      this.app.stage.removeChild(this.draggerContainer);
+      this.draggerContainer.destroy({ children: true });
+      this.draggerContainer = null;
+    }
+    // 清空映射
+    this.targetMap.clear();
   }
 
   /**
@@ -152,6 +187,7 @@ export class Dragger {
           this.interaction.status_ = 'none'
       }
     },
+
     // 记录点击时的值
     record: (e) => {
       this.interaction.goalEvent = e.target.parent // 记录当前点击事件的目标的父亲
@@ -161,11 +197,13 @@ export class Dragger {
       this.interaction.rotationStart = this.interaction.obj.rotation; // 记录全局旋转角度
       this.interaction.startClick = e.data.getLocalPosition(this.app.stage) // 记录初始点击位置
     },
+
     // 必须绑定到整个canvas画板，不然的话一旦脱出画框外就不生效就会看起来一卡一卡的
     loosen: () => {
       this.interaction.status_ = 'none' // 松开鼠标后重置状态
       this.interaction.goalEvent = null // 清除目标事件
     },
+
     // 使用全局坐标系
     move: () => {
       if (this.interaction.status_ === 'none') return // 如果没有交互状态则不处理
@@ -219,9 +257,10 @@ export class Dragger {
 
     function CreateTemplateSquare(x, y) {
       const square = new Graphics()
-      square.rect(0, 0, handleSize, handleSize)    // 绘制小方块
-      square.stroke({ width: 2, color: 0x000000 }) // 设置边框宽度和颜色（2像素黑色）
-      square.fill({ color: 0xffffff })             // 设置填充颜色为白色
+      square
+        .rect(0, 0, handleSize, handleSize)    // 绘制小方块
+        .stroke({ width: 2, color: 0x000000 }) // 设置边框宽度和颜色（2像素黑色）
+        .fill({ color: 0xffffff })             // 设置填充颜色为白色
       square.x = x - handleSize / 2                // 居中对齐
       square.y = y - handleSize / 2
       square.interactive = true // 使小方块可交互
@@ -250,7 +289,7 @@ export class Dragger {
     this.targetMap.get(obj).addChild(UpperLeft, UpperRight, LowerLeft, LowerRight,
       Upper, Lower, Left, Right, Rotate)
   }
-  
+
   // 更新方法
   update() {
     this.draggerContainer.children.forEach((child) => {
