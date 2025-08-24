@@ -1,1 +1,1 @@
-﻿export { Dragger } from './pixi-interact-kit.js'
+﻿export { Dragger } from './Dragger.js'
