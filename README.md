@@ -77,21 +77,22 @@ const graphicCreator = new GraphicCreator(app)
 // 实例化成为对象之后就自动在舞台上挂在了监听器
 // 作用是,点击拖拽可以创造一个新的图形
 ```
+
+#### 属性
+
+**onCreate**
+- 创建图形时的回调函数
+- 当新图形被创建时自动调用，参数为新创建的图形对象
+- 用于自定义创建后逻辑，如自动添加到拖拽管理器或设置属性
+
 #### 方法
 
-**setMode**
-/**
-  * 设置当前创建图形的模式
-  * @param {string} mode - 模式名称，目前支持:
-  * - 'none' - 无模式
-  * - 'rect' - 矩形
-  * - 'circle' - 圆形
-  * - 'line' - 直线
-  * - 'triangle' - 三角形
-  */
+**setMode(mode)**
+- 设置当前创建图形的模式
+- mode - 支持 'none'（无）、'rect'（矩形）、'circle'（圆形）、'line'（直线）、'triangle'（三角形）
 
 **destroy**
-- 销毁这个类
+ 销毁这个类
 
 
 ## 注意事项

@@ -24,6 +24,7 @@ export class GraphicCreator {
     this.dir = app.stage //新创建的图形默认的存放路径
     this.mode = 'none' //当前创建图形的模式
     this.drawToObj = false //是否正在绘制图形
+    this.onCreate = null // 钩子函数，创建时回调
 
     // 绑定this
     this.click = this.click.bind(this)
@@ -97,6 +98,10 @@ export class GraphicCreator {
     graphics.fill({ color: 0xffffff }).stroke({ width: 2, color: 0x000000 })
     this.dir.addChild(graphics)
     this.drawToObj = graphics
+    // 钩子回调
+    if (typeof this.onCreate === 'function') {
+      this.onCreate(graphics)
+    }
   }
 
   move() {
